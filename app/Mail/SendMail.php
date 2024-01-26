@@ -53,7 +53,7 @@ class SendMail extends Mailable
     public function attachments(): array
     {
         return [
-            Attachment::fromPath(public_path('/file/sample.pdf'))
+//            Attachment::fromPath(public_path('/file/sample.pdf'))
         ];
     }
 }
