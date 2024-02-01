@@ -23,4 +23,9 @@ class Category extends Model
     {
         return $this->hasMany(Job::class);
     }
+
+    public function emails()
+    {
+        return $this->hasMany(Job::class);
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CategoryResource\Pages\CreateCategory;
 use App\Filament\Resources\CategoryResource\Pages\EditCategory;
 use App\Filament\Resources\CategoryResource\Pages\ListCategories;
+use App\Filament\Resources\CategoryResource\RelationManagers\EmailsRelationManager;
 use App\Filament\Resources\CategoryResource\RelationManagers\JobsRelationManager;
 use App\Filament\Resources\CategoryResource\RelationManagers\MailsRelationManager;
 use App\Models\Category;
@@ -70,6 +71,7 @@ class CategoryResource extends Resource
     {
         return [
             MailsRelationManager::class,
+            EmailsRelationManager::class,
             JobsRelationManager::class
         ];
     }

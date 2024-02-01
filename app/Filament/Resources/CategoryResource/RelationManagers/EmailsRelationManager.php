@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\CategoryResource\RelationManagers;
 
-use App\Filament\Resources\MailResource\Pages;
-use App\Models\Mail;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
@@ -21,38 +20,28 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-class MailResource extends Resource
+class EmailsRelationManager extends RelationManager
 {
-    protected static ?string $model = Mail::class;
-    protected static ?string $navigationGroup = 'Configuration';
-    protected static ?string $recordTitleAttribute = 'name';
-    protected static ?string $navigationIcon = 'heroicon-o-envelope';
+    protected static string $relationship = 'emails';
 
-    public static function canViewAny(): bool
-    {
-        return false;
-    }
-
-    public static function form(Form $form): Form
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Section::make([
                     Select::make('category_id')->relationship('category', 'name')->required(),
-                    TextInput::make('name')->required(),
-                    TextInput::make('email')->email()->required(),
+                    Textarea::make('account')->required(),
                     Toggle::make('is_active')->default(true)
                 ])
             ]);
     }
 
-    public static function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
             ->columns([
                 TextColumn::make('category.name')->sortable(),
-                TextColumn::make('name')->sortable()->searchable(),
-                TextColumn::make('email')->sortable()->searchable(),
+                TextColumn::make('account')->sortable()->searchable(),
                 IconColumn::make('is_active')->sortable()
             ])
             ->filters([
@@ -62,30 +51,17 @@ class MailResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->where('is_active', false)),
                 SelectFilter::make('category')->relationship('category', 'name')
             ])
+            ->headerActions([
+                CreateAction::make(),
+            ])
             ->actions([
+                EditAction::make(),
                 DeleteAction::make(),
-                EditAction::make()
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListMails::route('/'),
-            'create' => Pages\CreateMail::route('/create'),
-            'edit' => Pages\EditMail::route('/{record}/edit'),
-        ];
     }
 }

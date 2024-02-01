@@ -2,14 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\MailResource\Pages;
-use App\Models\Mail;
+use App\Filament\Resources\EmailResource\Pages;
+use App\Models\Email;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\FontFamily;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -21,26 +23,22 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-class MailResource extends Resource
+class EmailResource extends Resource
 {
-    protected static ?string $model = Mail::class;
+    protected static ?string $model = Email::class;
     protected static ?string $navigationGroup = 'Configuration';
-    protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
-
-    public static function canViewAny(): bool
-    {
-        return false;
-    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Section::make([
-                    Select::make('category_id')->relationship('category', 'name')->required(),
-                    TextInput::make('name')->required(),
-                    TextInput::make('email')->email()->required(),
+                    Select::make('category_id')
+                        ->relationship('category', 'name')
+                        ->unique(ignorable: fn ($record) => $record)
+                        ->required(),
+                    Textarea::make('account')->rows(20)->required(),
                     Toggle::make('is_active')->default(true)
                 ])
             ]);
@@ -51,8 +49,27 @@ class MailResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('category.name')->sortable(),
-                TextColumn::make('name')->sortable()->searchable(),
-                TextColumn::make('email')->sortable()->searchable(),
+                TextColumn::make('account')
+                    ->wrap()
+                    ->sortable()
+                    ->searchable()
+                    ->limit(80)
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();
+
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        // Only render the tooltip if the column content exceeds the length limit.
+                        return $state;
+                    })
+                    ->icon('heroicon-m-envelope')
+                    ->iconColor('primary')
+                    ->fontFamily(FontFamily::Mono)
+                    ->copyable()
+                    ->copyMessage('Emails copied')
+                    ->copyMessageDuration(1500),
                 IconColumn::make('is_active')->sortable()
             ])
             ->filters([
@@ -64,7 +81,7 @@ class MailResource extends Resource
             ])
             ->actions([
                 DeleteAction::make(),
-                EditAction::make()
+                EditAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
@@ -83,9 +100,9 @@ class MailResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListMails::route('/'),
-            'create' => Pages\CreateMail::route('/create'),
-            'edit' => Pages\EditMail::route('/{record}/edit'),
+            'index' => Pages\ListEmails::route('/'),
+            'create' => Pages\CreateEmail::route('/create'),
+            'edit' => Pages\EditEmail::route('/{record}/edit'),
         ];
     }
 }
